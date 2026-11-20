@@ -1,53 +1,66 @@
-# Teollisuusautomaation IoT-Valvontapaneeli
+# Industrial Automation IoT Monitoring Dashboard 
 
-Tämä on Full-Stack IoT-järjestelmä, joka on suunniteltu teollisuuslaitteiden (kuten venttiilien ja moottoreiden) reaaliaikaiseen valvontaan, vikatilanteiden tunnistamiseen ja datan keräämiseen. 
+A full-stack IoT monitoring system designed for real-time condition tracking, fault detection, and data collection of industrial equipment (such as valves and motors). 
 
-Järjestelmä havaitsee dynaamisesti ylikuumenemiset ja jäätymisvaarat (DHT22) sekä kriittiset laitetärinät (MPU6050) ja hälyttää niistä paikallisesti LED-valolla sekä livenä React-dashboardilla.
+The system dynamically detects overheating and freezing hazards (**DHT22**) as well as critical equipment vibration (**MPU6050**), alerting operators both locally via an onboard status LED and remotely on a live **React** dashboard. 
 
-## Järjestelmäarkkitehtuuri
+--- 
 
-Järjestelmä koostuu kolmesta pääkomponentista:
-1. **`iot-laite` (ESP32 / Wokwi-simulaatio):** Lukee antureita (DHT22, MPU6050, Potentiometri) asynkronisesti ilman viiveitä (`millis()`). Laite kommunikoi langattomasti Wi-Fi-verkon yli ja julkaisee mittaustiedot JSON-muodossa MQTT-välittäjälle (`broker.emqx.io`).
-2. **`iot-bakkari` (Node.js + Express):** Toimii MQTT-asiakkaana, joka tilaa laitteen datavirran, jäsentyy JSON-paketit ja tallentaa ne relaatiotietokantaan. Tarjoaa REST API -rajapinnan etupäälle.
-3. **`iot-dashboard` (React + Vite):** Moderni käyttöliittymä, joka polling-menetelmällä päivittää anturiarvot ja mittaushistorian ruudulle 1 sekunnin välein.
+## System Architecture 
 
-## Tekniset pino (Tech Stack)
-- **Embedded:** C++ (Arduino framework), ESP32, MQTT (PubSubClient), I2C, ADC, DHT22, MPU6050
-- **Backend:** Node.js, Express.js, MQTT.js, SQLite/PostgreSQL, CORS
-- **Frontend:** React (Hooks), Vite, JavaScript, CSS-in-JS
+The system consists of three main components: 
 
-## Hälytyslogiikka
-- `Tila 0 (Normal)`: Kaikki arvot viitealueella. Dashboard on vihreä.
-- `Tila 1 (Varoitus)`: Lämpötila > 30 °C tai lämpötila laskee liian alas (jäätymisvaara). Dashboard muuttuu oranssiksi, laitteen LED vilkkuu hitaasti.- `Tila 2 (Kriittinen)`: Tärinä X/Y-akselilla > 15 m/s². Dashboard muuttuu punaiseksi, laitteen LED vilkkuu erittäin nopeasti.
+1. **`iot-laite` (ESP32 / Wokwi Simulation):** Reads sensors (DHT22, MPU6050, Potentiometer) asynchronously without blocking delays (`millis()`). The device communicates wirelessly over Wi-Fi and publishes telemetry in JSON format to an MQTT broker (`broker.emqx.io`). 
+2. **`iot-bakkari` (Node.js + Express):** Acts as an MQTT client that subscribes to the device data stream, parses incoming JSON packets, and persists them into a relational database. Exposes a REST API for the frontend. 
+3. **`iot-dashboard` (React + Vite):** A modern operator interface that updates sensor values and measurement history on screen every 1 second using polling. 
 
-## Miten järjestelmä käynnistetään paikallisesti
+--- 
 
-1. **Käynnistä tietokanta ja taustajärjestelmä:** 
+## Tech Stack 
+
+* **Embedded:** C++ (Arduino framework), ESP32, MQTT (PubSubClient), I2C, ADC, DHT22, MPU6050 
+* **Backend:** Node.js, Express.js, MQTT.js, SQLite / PostgreSQL, CORS 
+* **Frontend:** React (Hooks), Vite, JavaScript, CSS-in-JS 
+
+--- 
+
+## Alert Logic 
+
+* **State 0 (Normal):** All values within nominal operating limits. The dashboard is green. 
+* **State 1 (Warning):** Temperature > 30 °C or temperature drops too low (freezing hazard). The dashboard turns orange, and the onboard LED blinks slowly. 
+* **State 2 (Critical):** Vibration on X/Y-axis > 15 m/s². The dashboard turns red, and the onboard LED blinks rapidly. 
+
+--- 
+
+## Running the System Locally 
+
+### 1. Start the Database and Backend Server 
 ```bash 
 cd iot-bakkari 
 npm install 
 node server.js 
-```
+``` 
 
-2. **Käynnistä React-käyttöliittymä:** 
+### 2. Start the React Frontend 
 ```bash 
 cd iot-dashboard 
 npm install 
 npm run dev 
-```
+``` 
 
-3. **Käynnistä laitesimulaatio (kaksi vaihtoehtoa):
-   * **Vaihtoehto A (Wokwi-simulaattori ESP32-laite):** Avaa `iot-laite`-kansion koodi Wokwi-simulaattorissa ja käynnistä simulaatio.
-   * **Vaihtoehto B (Paikallinen Node-simulaattori):** Koska WokWi saattaa toisinaan pätkiä tai hidastella anturidatan pyörittämisessä, projektissa on mukana erillinen taustalla ajettava testisimulaattori. Se lähettää luotettavasti testidataa suoraan dashboardille:
-   ```bash
-   node simulaattori.js
-   ```
+### 3. Start the Device Simulation (Two Options) 
+* **Option A (Wokwi ESP32 Hardware Simulation):** Open the `iot-laite` code in the Wokwi simulator and start the simulation. 
+* **Option B (Local Node.js Test Simulator):** Because browser-based Wokwi simulations can occasionally lag or throttle sensor execution, the project includes a standalone background test simulator. It reliably streams realistic test telemetry directly to the dashboard: 
+```bash 
+node simulaattori.js 
+``` 
 
----
+--- 
 
-## Jatkokehitysideat (Miten järjestelmää kehitetään)
+## Future Improvements 
 
-Projektia voidaan laajentaa tulevaisuudessa seuraavilla ominaisuuksilla:
-* **Automaattiset sähköposti-/tekstiviesthälytykset:** Integroidaan taustajärjestelmään palvelu (esim. SendGrid tai Twilio), joka lähettää automaattisen ilmoituksen ylläpidolle heti, kun kriittinen tila 2 (PUNAINEN) laukeaa.
-* **Käyttäjänhallinta ja kirjautuminen:** Lisätään JWT-pohjainen (JSON Web Token) suojattu kirjautuminen dashboardille, jotta vain valtuutetut työntekijät voivst kuitata hälytyksiä tai muuttaa tehdasastuksia.
-* **Historiadatan visualisointi:** Lisätään dashboardille interaktiiviset kuvaajat (esim. Chart.js tai Recharts), joista voidaan takastella lämpötilan ja tärinän kehitystä pitkältä aikaväliltä.
+The project can be expanded in the future with the following features: 
+
+* **Automated Email/SMS Alerts:** Integrate a notification service (e.g., SendGrid or Twilio) into the backend to automatically alert maintenance personnel the moment critical **State 2 (RED)** is triggered. 
+* **User Management & Authentication:** Add JWT-based (JSON Web Token) authentication to the dashboard so only authorized personnel can acknowledge alarms or modify factory thresholds. 
+* **Historical Data Visualization:** Add interactive time-series charts (e.g., Chart.js or Recharts) to the dashboard to analyze temperature and vibration trends over extended periods.
