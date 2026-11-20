@@ -25,7 +25,7 @@ Thumbs.db
 *.swp
 wokwi.log
 *.db
-*.db-jounal
+*.db-journal
 *.sqlite
 *.sqlite3
 
