@@ -45,7 +45,7 @@ mqttClient.on('connect', () => {
 
 mqttClient.on('message', (topic, message) => {
     try {
-        // Jäsnetään ESP32:lta tullut JSON-paketti 
+        // Jäsennetään ESP32:lta tullut JSON-paketti 
         const data = JSON.parse(message.toString());
         console.log('Uutta dataa vastaanotettu:', data);
 
