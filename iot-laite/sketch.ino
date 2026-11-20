@@ -1,6 +1,3 @@
-// Liitää tämä https://wokwi.com/projects/new/esp32 sivun
-// sketch.ino ikkunaan ja lisää library manager DHT sensor library PubSubClient ja Adafruit MPU6050 Adafruit Unified Sensor kirjastot
-
 #include <Adafruit_MPU6050.h>
 #include <Adafruit_Sensor.h>
 #include <DHT.h>
